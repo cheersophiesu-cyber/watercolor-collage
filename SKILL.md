@@ -7,6 +7,19 @@ description: Transform a user-provided photo into a vertical 2:3 art poster with
 
 Create one finished high-resolution vertical 2:3 raster poster from the user's uploaded photograph. Generate the illustrated lower panel separately, then assemble it with the untouched source photograph using `scripts/compose-diptych.mjs`. Do not ask an image model to generate or reconstruct the finished upper panel.
 
+## Completion contract
+
+The image-generation result is always an intermediate asset, never the deliverable. After the image tool returns, continue working in the same turn: save the generated lower panel, run the compositor, inspect the assembled file, and return only that assembled file.
+
+Do not finish, summarize, or show a final answer until all four states are true:
+
+1. `SOURCE_IMAGE` is the accessible original upload.
+2. `LOWER_PANEL` is a saved raster file containing only the illustrated lower panel.
+3. `OUTPUT_IMAGE` was created successfully by `scripts/compose-diptych.mjs` and exists on disk.
+4. `OUTPUT_IMAGE` passed the final visual and dimensional checks below.
+
+If image generation succeeds but saving or compositing fails, report the concrete failure and keep the generated image labeled as an intermediate preview. Never substitute it for the finished poster. Never return the lower panel by itself.
+
 ## Source handling
 
 - Require an accessible source image. If it is missing, ask the user to upload it and stop.
@@ -28,16 +41,19 @@ Create one finished high-resolution vertical 2:3 raster poster from the user's u
 
 ## Assembly workflow
 
-1. Generate only the lower watercolor-collage panel. Give the image tool the source photograph as a semantic reference, but explicitly request a standalone illustrated lower panel with no photographic upper panel.
-2. Save the lower panel as a raster image.
-3. Run the deterministic compositor from the skill directory:
+1. Choose explicit local paths for `SOURCE_IMAGE`, `LOWER_PANEL`, and `OUTPUT_IMAGE`. Keep intermediate and final files distinct; never overwrite the source.
+2. Generate only the lower watercolor-collage panel. Give the image tool the source photograph as a semantic reference, but explicitly request a standalone illustrated lower panel with no photographic upper panel. Treat any image shown by the tool as an intermediate preview.
+3. Save or export that generated lower panel to `LOWER_PANEL`. Confirm the file exists and is readable before continuing.
+4. Run the deterministic compositor from the skill directory and wait for it to exit successfully:
 
    ```bash
    node scripts/compose-diptych.mjs SOURCE_IMAGE LOWER_PANEL OUTPUT_IMAGE
    ```
 
-4. Use the default `cover` mode and set a subject-aware focal point when the main subject is not centered, for example `--focus-x 0.55 --focus-y 0.45`. Preview the crop and adjust the focus until the main subjects are as complete as possible. Use `--photo-fit contain` only when no filled crop is acceptable.
-5. Inspect the assembled output. If the upper photograph appears stretched, squashed, redrawn, or cropped through a subject, reject it rather than returning it.
+5. Require exit code 0 and parse the compositor's JSON report. Confirm `aspectRatioPreserved` is `true`, `scaleX` equals `scaleY`, the canvas is 2:3, and `OUTPUT_IMAGE` exists.
+6. Use the default `cover` mode and set a subject-aware focal point when the main subject is not centered, for example `--focus-x 0.55 --focus-y 0.45`. Preview the crop and adjust the focus until the main subjects are as complete as possible. Use `--photo-fit contain` only when no filled crop is acceptable.
+7. Inspect `OUTPUT_IMAGE`, not the image-tool preview. If the upper photograph appears stretched, squashed, redrawn, missing, or cropped through a subject, reject it and rerun the compositor with a corrected focus rather than returning it.
+8. Return `OUTPUT_IMAGE` as the sole finished image. Do not return `LOWER_PANEL`, an image-generation URL, or the prompt as the result.
 
 The compositor creates a 1200 × 1800 poster by default, places the photographic panel in the top 840 pixels, and uses a single uniform scale factor for the source. It requires Node.js and `sharp`. If `sharp` is unavailable, use another deterministic raster compositor with equivalent aspect-preserving cover and focal-crop semantics; never fall back to single-pass image generation for the upper panel.
 
@@ -62,4 +78,6 @@ Do not add a title, logo, brand name, date, border, caption, or explanatory copy
 
 ## Final check
 
-Before returning the result, verify the 2:3 orientation, clear horizontal split, untouched photographic character of the upper panel, and identical horizontal and vertical scaling of that photograph. Check recognizable geometry such as faces, eyes, balls, wheels, plates, or other circular objects for any flattening. Confirm that every main subject remains fully visible and that no crop boundary cuts through a head, body, limb, tail, clothing silhouette, or key accessory. Also verify subject count and identity, pose and color fidelity in the lower panel, ample off-white negative space, restrained print-collage texture, and one legible original poem only. Return the finished image rather than the prompt.
+Before returning the result, open the local `OUTPUT_IMAGE` and verify the 2:3 orientation, clear horizontal split, untouched photographic character of the upper panel, and identical horizontal and vertical scaling of that photograph. Check recognizable geometry such as faces, eyes, balls, wheels, plates, or other circular objects for any flattening. Confirm that every main subject remains fully visible and that no crop boundary cuts through a head, body, limb, tail, clothing silhouette, or key accessory. Also verify subject count and identity, pose and color fidelity in the lower panel, ample off-white negative space, restrained print-collage texture, and one legible original poem only.
+
+A valid final response displays or links the local assembled `OUTPUT_IMAGE`. If that file cannot be produced or verified, state that the poster is incomplete instead of presenting any intermediate generated image as finished.
