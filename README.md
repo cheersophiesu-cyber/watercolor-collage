@@ -15,7 +15,7 @@
 | 上半画面 | 下半画面 |
 | --- | --- |
 | 保留原照片的主体、姿态、环境、光线与抓拍感 | 将同一主体转译为极简水彩与撕纸拼贴 |
-| 只做必要轻裁和自然调色 | 从原照片提取低饱和自然色彩 |
+| 等比铺满上半画面，围绕主体智能裁切，绝不拉伸或压扁 | 从原照片提取低饱和自然色彩 |
 | 不重画、不换脸、不改变动作 | 保留毛色、服装、朝向、表情与关键配饰 |
 | 不添加文字或装饰 | 在留白中加入一句与现场有关的原创英文短诗 |
 
@@ -84,6 +84,8 @@ Watercolor Collage 的重点不是给照片套滤镜，而是在不丢失记忆�
 - 不改变主体的动作、方向与相对位置
 - 准确保留毛色、服装主色、表情和辨识特征
 - 上半画面不被重绘或风格化
+- 上半画面由确定性合成脚本按原始宽高比嵌入，绝不横向或纵向拉伸
+- 以上半画面铺满为默认，通过调整裁切焦点尽量保留人物、宠物、四肢、尾巴和关键配饰
 - 下半画面保持克制留白，不完整重画原背景
 - 画面中只出现一句拼写正确的原创短诗
 
@@ -91,6 +93,7 @@ Watercolor Collage 的重点不是给照片套滤镜，而是在不丢失记忆�
 
 - `SKILL.md`：生成工作流、构图规则与质量检查标准
 - `agents/openai.yaml`：Codex 中的显示名称与默认调用语句
+- `scripts/compose-diptych.mjs`：无变形拼接原图与水彩画面的确定性合成脚本
 - `README.md`：效果介绍、安装与使用说明
 - `LICENSE`：MIT License
 
@@ -113,7 +116,7 @@ The finished image feels like a page from an independent art magazine, an old po
 | Upper Panel | Lower Panel |
 | --- | --- |
 | Preserves the original subject, pose, setting and light | Reinterprets the subject in watercolor and torn-paper collage |
-| Allows only minimal cropping and natural color correction | Extracts a muted natural palette from the photograph |
+| Fills the upper panel with proportional scaling and subject-aware cropping—never stretching or squeezing | Extracts a muted natural palette from the photograph |
 | Never redraws faces or changes actions | Preserves colors, direction, expression and identifying details |
 | Contains no text or decoration | Adds one original English poem line in the negative space |
 
@@ -145,6 +148,8 @@ It protects:
 - Pose, direction and relative position
 - Coat colors, clothing, expressions and key accessories
 - The photographic character of the upper panel
+- The original aspect ratio through deterministic, non-generative compositing
+- Edge-to-edge fill is the default, with a subject-aware crop that keeps people, animals, limbs, tails and key accessories as complete as possible
 - Spacious negative space in the illustrated panel
 - One correctly rendered original poem line—and no extra text
 
