@@ -1,4 +1,4 @@
 interface:
   display_name: "Watercolor Collage"
   short_description: "Turn a photo into a poetic watercolor collage"
-  default_prompt: "Use $watercolor-collage to turn my uploaded photo into a vertical watercolor collage poster."
+  default_prompt: "Use $watercolor-collage to turn my uploaded photo into a finished vertical watercolor collage poster. Continue after image generation, run the required local compositor, verify the assembled file, and return only that final file."
