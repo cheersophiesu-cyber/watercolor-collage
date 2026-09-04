@@ -1,0 +1,4 @@
+interface:
+  display_name: "Watercolor Collage"
+  short_description: "Turn a photo into a poetic watercolor collage"
+  default_prompt: "Use $watercolor-collage to turn my uploaded photo into a vertical watercolor collage poster."
